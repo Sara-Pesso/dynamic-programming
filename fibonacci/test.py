@@ -1,62 +1,59 @@
-import sys
+# Python Code to Assign Unique Cap To Every Person
+# using Recursion
+def dfs(assigned_count, assigned_people, cap, cap_to_people, total_people, num_caps):
+    
+    # Base case: if all people have a cap assigned, return 1
+    if assigned_count == total_people:
+        return 1
+    
+    # If we've considered all caps and not everyone
+    # has a cap, return 0
+    if cap > num_caps:
+        return 0
 
-def tsp(cost):
-    n = len(cost)
-    if n <= 1:
-        return cost[0][0] if n == 1 else 0
-    
-    # maximum cost to visit all cities
-    INF = sys.maxsize
-    FULL = 1 << n
-    fullMask = FULL - 1
-    
-    # dp[mask][i] represents the minimum cost to visit all cities
-    # corresponding to the set bits in 'mask', ending at city 'i'
-    dp = [[INF] * n for _ in range(FULL)]
-    dp[1][0] = 0
-    
-    # iterate over all subsets of cities
-    for mask in range(1, FULL):
-        for i in range(n):
+    # Case: skip the current cap
+    ways = dfs(assigned_count, assigned_people, 
+               cap + 1, cap_to_people, total_people,num_caps)
+
+    # Assign the current cap to each person who likes it
+    for person in cap_to_people[cap]:
+
+        # Check if the person already has a cap assigned
+        if not assigned_people[person]:
             
-            # skip if city i is not included in mask
-            if not (mask & (1 << i)):
-                continue
-            if dp[mask][i] == INF:
-                continue
+            # Assign current cap to the person
+            assigned_people[person] = True
             
-            # try to go to every unvisited city j
-            for j in range(n):
-                
-                # skip if city j is already visited
-                if mask & (1 << j):
-                    continue
-                
-                # cost to visit new city j from city i
-                # such that previously visited cities
-                # remain visited
-                nxt = mask | (1 << j)
-                dp[nxt][j] = min(dp[nxt][j], dp[mask][i] + cost[i][j])
-    
-    ans = INF
-    for i in range(n):
-        
-        # if last city on path is i and 
-        # cost of path is not infinity
-        if dp[fullMask][i] != INF:
+            # Recurse with increased assigned count
+            ways += dfs(assigned_count + 1, assigned_people, 
+                        cap + 1, cap_to_people, total_people,num_caps)
             
-            # update net cost such that city 0 is visited in last
-            ans = min(ans, dp[fullMask][i] + cost[i][0])
+            # Backtrack: unassign the cap for other possibilities
+            assigned_people[person] = False
+
+    return ways
+
+# Main function to calculate the number
+# of ways to assign caps
+def number_ways(caps):
+    n = len(caps) #people
+    # caps = 100
+    num_caps = max(map(max, caps))
+
+    # Map each cap to the list of people who prefer it
+    cap_to_people = [[] for _ in range(num_caps + 1)]
+    for i in range(n): #people
+        for cap in caps[i]: #caps allowed by each person
+            cap_to_people[cap].append(i)
+
+    # Initialize assigned_people list to track assigned caps
+    assigned_people = [False] * n
     
-    return ans
+    # Call the recursive function starting from the first cap
+    # return dfs(0, assigned_people, 1, cap_to_people, n, num_caps)
+    return cap_to_people
 
 if __name__ == "__main__":
-    cost = [
-        [0, 10, 15, 20],
-        [10, 0, 35, 25],
-        [15, 35, 0, 30],
-        [20, 25, 30, 0]
-    ]
-    
-    res = tsp(cost)
-    print(res)
+  
+    caps = [[1, 2, 3], [1, 2], [3, 4], [4, 5]]
+    print(number_ways(caps))
