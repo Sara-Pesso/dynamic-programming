@@ -40,12 +40,10 @@ def num_perms(objs):
     assigned_nodes = [False] * num_nodes
 
     # Recursion
-    return dfs(0, assigned_nodes, 1, obj_to_nodes, num_nodes, num_objs)
+    return dfs(0, assigned_nodes, 0, obj_to_nodes, num_nodes, num_objs)
 
 if __name__ == "__main__":
   
-    # caps = [[0, 1, 2], [0, 1], [2, 3], [3, 4]]
-    caps = [[1, 2, 3], [1, 2], [3, 4], [4, 5]]
-
-    # TODO: needs a leading, empty list in obj_to_nodes for some reason....
+    caps = [[0, 1, 2], [0, 1], [2, 3], [3, 4]]
+    # caps = [[1, 2, 3], [1, 2], [3, 4], [4, 5]]
     print(num_perms(caps))
