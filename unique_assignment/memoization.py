@@ -6,7 +6,6 @@ def count_perms(hats):
         for hat in prefs:
             mappings[hat].append(i)
     mappings = list(mappings.items())
-    # print(mappings)
 
     num_ppl = len(hats)
     num_hats = max(max(h) for h in hats)

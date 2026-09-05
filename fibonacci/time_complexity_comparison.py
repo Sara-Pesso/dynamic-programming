@@ -16,5 +16,5 @@ print(f"Average Memoization (Top-Down) Time: {total_time_memoization/runs:.7f} s
 total_time_tabulation = timeit.timeit('kthFibonacciNumber_Tabulation(k)', globals=globals(), number=runs)
 print(f"Average Tabulation (Bottom-Up) Time: {total_time_tabulation/runs:.7f} seconds")
 
-total_time_tabulation_opt = timeit.timeit('kthFibTabulation_OptimizedTime(k)', globals=globals(), number=runs)
+total_time_tabulation_opt = timeit.timeit('kthFibTabulation_OptimizedSpace(k)', globals=globals(), number=runs)
 print(f"Average Tabulation Optimized (Bottom-Up) Time: {total_time_tabulation_opt/runs:.7f} seconds")

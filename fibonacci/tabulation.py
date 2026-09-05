@@ -14,7 +14,7 @@ def kthFibonacciNumber_Tabulation(k):
 
     return dp[k]
 
-def kthFibTabulation_OptimizedTime(k):
+def kthFibTabulation_OptimizedSpace(k):
     if k <= 1: 
         return k
 
