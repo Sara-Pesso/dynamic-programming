@@ -53,6 +53,7 @@ adj = [
 ]
 
 ham_check, dp = has_hamiltonian_cycle(adj)
+print("dp:", dp)
 
 # --- Construct Hamiltonian Cycle from bitmasks ---
 if ham_check: # i.e., there exists a hamiltonian cycle somewhere in this graph
