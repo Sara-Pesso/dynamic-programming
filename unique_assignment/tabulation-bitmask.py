@@ -78,10 +78,12 @@ def assignment(cost):
 # Example Usage:
 # 3 people (rows), 3 objs (columns) cost matrix
 # Where each c_{ji} represents the cost of assigning object i to person j
+
+## This example would be an easy way to use this for a Secret Santa problem!
 costs = [
-    [3,4,7],
-    [11,15,8],
-    [9,4,6]
+    [0, -1, -1],
+    [-1 , 0, 0],
+    [0, -1, 0]
 ]
 
 ## ---- RESULTS ----
