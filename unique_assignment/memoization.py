@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-def count_perms(objs):
+def assignment_permutations(objs):
     # 0. Determine the number of objects to be assigned and the number of people to assign to 
     mappings = defaultdict(list)
     for i, prefs in enumerate(objs):
@@ -55,7 +55,7 @@ objs = [[0, 1, 2],
         [0, 1], 
         [3, 4]]
 
-count, dp, mappings = count_perms(objs)
+count, dp, mappings = assignment_permutations(objs)
 
 ### ==== EXTRACT UNIQUE ASSIGNMENT ====
 

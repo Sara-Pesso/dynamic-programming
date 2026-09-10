@@ -4,7 +4,7 @@ def assignment(cost):
     n = len(cost)
 
     # 1. We will do this using a bitmask. 
-    # Each person will represent one bit in our mask. 
+    # Each node will represent one bit in our mask. 
     # This will represent the subset of people assigned an object. 
     # So, we will need to work through 2^n states
     nstates = 1 << n
@@ -16,7 +16,7 @@ def assignment(cost):
     dp[0] = 0 
 
     # 3.5. Initializing a Python dictionary that maps our *new mask* to a tuple of 
-    # the *previous mask* and *person j* (for extracting the assignment solution later)
+    # the *previous mask* and *node j* (for extracting the assignment solution later)
     previous_assignment = {}
 
     # ---- Begin Tabulation & Bitmasking ----
@@ -25,11 +25,11 @@ def assignment(cost):
         # Determine which object we are about to assign to someone. This can be determined by determining how many bits in our bitmask have already been set.
         obj_idx = bin(mask).count('1')
         
-        # Because we are iterating from 0, if obj_id = n$ we have already assigned all the objects to a person and we continue out of the loop.
+        # Because we are iterating from 0, if obj_id = n$ we have already assigned all the objects to a node and we continue out of the loop.
         if obj_idx == n:
             continue
             
-        # 5. Try to assign object i to any available person, j, by looping through 
+        # 5. Try to assign object i to any available node, j, by looping through 
         # the n bits in the mask and determining if they haven't yet been assigned 
         # an object. We can do this by using the AND (&) operator to determine if 
         # bit j is unset (i.e, if bit j = 0):
@@ -44,7 +44,7 @@ def assignment(cost):
                 
                 # Because we are looking for the *minimum* cost of assigning all n 
                 # objects, we only accept the new cost derived from assign object i 
-                # to person j with respect to the *new* mask if our *new* 
+                # to node j with respect to the *new* mask if our *new* 
                 # cost is less than whatever is *currently* held in the DP table for 
                 # the *new* mask.
                 if new_cost < dp[new_mask]:
@@ -60,24 +60,24 @@ def assignment(cost):
     # --- Extracting Assignments from the DP Table ----
     # Extracting the final optimal assignments is then pretty straight forward. 
     # We initialize an empty list to hold the assignments where the list's index j
-    # corresponds to person j. Then, we simply loop *backward* through each person 
-    # n > j > 0 (since person n was assigned last). Each iteration we find the 
-    # previous bitmask and task assigned for each current bitmask, assign person j
-    # to that task, and loop again using the previous bitmask as the current mask:
+    # corresponds to node j. Then, we simply loop *backward* through each node 
+    # n > j > 0 (since node n was assigned last). Each iteration we find the 
+    # previous bitmask and object assigned for each current bitmask, assign node j
+    # to that object, and loop again using the previous bitmask as the current mask:
     n = len(costs)
     assignments = [-1] * n
     curr_mask = (1 << n) - 1
 
-    for person in range(n - 1, -1, -1):
-        prev_mask, task = previous_assignment[curr_mask]
-        assignments[person] = task
+    for obj in range(n - 1, -1, -1):
+        prev_mask, node = previous_assignment[curr_mask]
+        assignments[node] = obj
         curr_mask = prev_mask
     return dp[(1 << n) - 1], assignments
 
 ## ---- MAIN ----
 # Example Usage:
 # 3 people (rows), 3 objs (columns) cost matrix
-# Where each c_{ji} represents the cost of assigning object i to person j
+# Where each c_{ji} represents the cost of assigning object i to node j
 
 ## This example would be an easy way to use this for a Secret Santa problem!
 costs = [
@@ -89,5 +89,5 @@ costs = [
 ## ---- RESULTS ----
 min_cost, assignments = assignment(costs)
 for i in range(len(assignments)):
-    print(f"Person {i} -> Object {assignments[i]}: Cost {costs[i][assignments[i]]}")
+    print(f"Node {i} -> Object {assignments[i]}: Cost {costs[i][assignments[i]]}")
 print("Min. Cost:", min_cost)
