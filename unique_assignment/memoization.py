@@ -1,53 +1,81 @@
 from collections import defaultdict
 
 def assignment_permutations(objs):
-    # 0. Determine the number of objects to be assigned and the number of people to assign to 
-    mappings = defaultdict(list)
-    for i, prefs in enumerate(objs):
-        for obj in prefs:
-            mappings[obj].append(i)
-    mappings = list(mappings.items())
+    # 0. First, we need to turn our input LOLs (which maps node $i$ to allowed objects)
+    # into a list of dictionaries that maps each *object* to those nodes which it 
+    # is allowed to be assigned.
+    obj_to_node = defaultdict(list)
+    for i, allowed_objs in enumerate(objs):
+        for obj in allowed_objs:
+            obj_to_node[obj].append(i)
+    obj_to_node = list(obj_to_node.items())
 
-    num_ppl = len(objs)
+    # 1. Initialize memoization (DP) table and final bitmask
+    # Find the number of nodes to which we will assign objects.
+    n = len(objs)
 
-    # Also need to define our stop criteria. All 1s in our bitmask means that every person
-    # has been assigned one of their allowable objects. 
-    fin = (1 << num_ppl) - 1 #all 1 = successful permutation
+    # Also need to define our stop criteria. All ones in our bitmask 
+    # means that every node has been assigned (an allowed) object. So, we know we
+    # can break out of our loop.
+    fin = (1 << n) - 1 
 
-    # 1. Initialize memoization (DP) table
+    # Initial DP Table
     dp = {}
 
 
-    def dfs(idx, mask):
-        if mask == fin: # i.e., everyone has a object
-            return 1 # add 1 to the count
+    def dfs(i, mask):
+        # 1. Check if every node has successfully been assigned an object.
+        # If so, return 1 (adding 1 to our successful permutations count)
+        if mask == fin:
+            return 1
 
-        if idx == len(mappings):
-            return 0 # i.e., at least 1 person doesn't have a object, but we're at the last object so this perm doesn't work
+        # 2. If the bitmask is not full, but the current object index is n+1, return 0. 
+        # This means we have iterated through all n objects, but at least one node is still not assigned. 
+        # So, we do not have a successful permutation, and we add nothing to the count.
+        if i == len(obj_to_node):
+            return 0 
 
-        # Check memoization table for this result. If it's there, skip dfs and move on!
-        # if dp[idx][mask] != 0:
-        if (idx, mask) in dp:
-            return dp[(idx, mask)]
+        # 3. Check the memoization (DP) table to see if we've completed this subproblem before. 
+        # Recall the DP table is storing the current object index being assigned at the 
+        # current bitmask to the running count of possible permutations after that 
+        # combination. So, checking for the already solved subproblem and returning that 
+        # result instead of recursing:
+        if (i, mask) in dp:
+            return dp[(i, mask)]
 
-        num_perms = dfs(idx + 1, mask) # skip current object
+        # 4. DFS Skip! We do this so we can see if we can assign an object to every node without
+        # this particular object. This way we can get accurate counts for all P(n,k) permutations.
+        # (this notation means "choose $k$ objects from $n$ total objects, where the order matters).
+        # Note: this step really only matters if there are less nodes than objects! In the case
+        # of the SSQ, this step is moot, but doesn't do any harm.
+        # This is also how we can start tracking the *total* number of permutations possible!
+        num_perms = dfs(i + 1, mask) 
 
-        # look at all the assignments for this object
-        for node in mappings[idx][1]:
-            #if the node is already assigned an obj, move to next node
+        # 5. DFS: Loop through each object and then in a nested loop, loop through all the nodes
+        # to which that object is able to be assigned. 
+        for node in obj_to_node[i][1]:
+            # a. If the current node is already assigned (i.e., the corresponding 
+            # bit in our mit mask is already set to 1), skip to the next node. 
             if mask & (1 << node):
                 continue
 
-            # if the node hasn't been assigned an obj yet,
-            # try assigning it an obj
+            # b. If the current node hasn't yet been assigned an object (i.e., the corresponding bit 
+            # is a 0 in the current bitmask), assign the current object and then update the bitmask by 
+            # setting the node's bit to 1.
             new_mask =  mask|(1 << node)
-            num_perms += dfs(idx + 1, new_mask)
 
+            # c. Recurse by running the DFS step again, moving on to the next object's 
+            # index and the new bitmask (keeping track of which nodes have already been 
+            # assigned in our callstack)
+            num_perms += dfs(i + 1, new_mask)
 
-        dp[(idx, mask)] = num_perms
+        dp[(i, mask)] = num_perms
         return num_perms
-
-    return dfs(0,0), dp, mappings #Initial state: object zero, zero people assigned objects. Also return the memo table
+    
+    # 7. Finally, once DFS is complete the function terminates, returning the total 
+    # number of possible permutation, the memoization table, and our object-to-node 
+    # list of dictionaries.
+    return dfs(0,0), dp, obj_to_node 
 
 ### ==== MAIN FUNCTION ====
 objs = [[0, 1, 2], 
@@ -59,54 +87,79 @@ count, dp, mappings = assignment_permutations(objs)
 
 ### ==== EXTRACT UNIQUE ASSIGNMENT ====
 
+# 1. First, make sure there is at least one solution.
 if dp[(0,0)] == 0: 
     print("There is no unique assignment of objects to the nodes in this matrix.")
 
-else: # i.e., there is at least one unique assignment solution
-
-    # Number of nodes
+else: 
+    # 2. If there is at least one unique assignment solution, we'll need to grab the 
+    # number of objects. We will also initialize our bitmask to 0 
+    # (i.e., nothing is assigned).
+    # And, again define the "full mask"-- a bitmask of all ones we'll use as our stopping criteria. 
     num_objs = max(map(max, objs)) 
-
-    # Start with nothing assigned
     current_mask = 0
-    # Stop criteria is when we assign everyone. So, stop at
     full_mask = (1 << num_objs) - 1
 
-    # Initialize something to hold the assignment pairings
+    # 3. Initialize a dictionary to hold the assignment pairings
     assignments = {}
 
+    # 4. Begin looping thru the index of each object
     for i in range(num_objs):
-        # If all nodes are assigned an object, break out of loops
-        if current_mask == full_mask:
-            break
 
-        # # If we can complete assigning all nodes an objects without this obj, skip it
-        # if dp[(i, current_mask)] > 0: 
-        #     continue #skip on to next i
-
-        # Else, assign this object to a node
+        # 5. Set a flag that will indicate whether this object is assigned. If it 
+        # happens that this object is assigned to some node in the assignment 
+        # permutation being mapped from the DP table, this flag will be set to True.
+        # When the loop moves on to object i+1, this flag will be reset to False. 
         assigned_obj = False
 
-        # Try assigning object i
-        for j in mappings[i][1]: # List of nodes object i can be assigned to
-            if not (current_mask & (1 << j)): # Check node j is not assigned in this mask
-                # Check if object i+1 (the next) can be assigned in a future mask
+        # 6. Attempt to assign object i to some node j by looping through each allowed node 
+        # in the object-to-node mapping derived from the user defined input matrix. By comparing 
+        # these to the number of possible permutations counted up after each bitmask (which we 
+        # have mapped in the memoization/DP table), we can determine if node j is actually a 
+        # viable pairing for object $i$. For example, if we see that in the object-to-node map 
+        # object i is allowed to be assigned to node $j$ and this assignment can lead to viable 
+        # permutations via the DP table, we can report it in our final assignment. But, if the 
+        # DP table indicates there are 0 ways to make a viable full assignment after assigning 
+        # object i to node j, we can not do it.
+        for j in mappings[i][1]: 
+
+            # a. Verify node j is not already assigned in the current mask (i.e., make sure the 
+            # jth bit is 0)
+            if not (current_mask & (1 << j)):
+
+                # b. Compare assigning object i to node j in the current bitmask, to viable 
+                # assignments for object i+1 in the next bitmask (assuming that we continue 
+                # with this particular assignment). If the next mask is the full mask, then we 
+                # don't need (or have to) assign any more objects to nodes. Then, verify that 
+                # the number of possible permutations counted after object i+1 and the new 
+                # bitmask stored in the DP table is greater than 0 (i.e., there is at least one 
+                # path to a complete assignment).
                 new_mask = current_mask | (1 << j)
                 if new_mask != full_mask:
                     if dp[(i + 1, new_mask)]:
+
+                        # c. Assuming all these checks are passed, assign object i to node j in 
+                        # the dictionary, move on to evaluating the new bitmask, and switch the 
+                        # flag to False. Finally, break out of the loop and move on to object i+1.
                         assignments[j] = i
                         current_mask = new_mask
                         assigned_obj == True
                         break
-                else: # new_mask == full_mask (i.e., we're done!- just need to assign last node)
+
+                # d. If the new mask is the bitmask of all ones (the full mask), make the final 
+                # assignment and break out if the loop.
+                else: 
                     assignments[j] = i
                     break
 
+        # e. For the sake of saving a bit of speed, if we've reached the full mask and previous object was 
+        # able to be assigned, we are done and can break out of the nested loops. 
         if assigned_obj and current_mask == full_mask:
             break
 
-# Print out a unique solution!
-print(assignments)
+## ==== FINAL SOLUTION! ====
+for i in assignments:
+    print(f"Node {i} --> Object {assignments[i]}")
 
 
 
