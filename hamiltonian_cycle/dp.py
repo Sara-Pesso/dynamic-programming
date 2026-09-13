@@ -131,16 +131,28 @@ if ham_check:
         current_node = end_node
         current_mask = final_mask
 
-        # 6. 
+        # 6. To actually work our way through the DP table to decode the Hamiltonian we found is 
+        # fairly straight forward. Starting from the last node and "full" bitmask, find the 
+        # previous node from the DP table. You'll remember from earlier we set up our DP table 
+        # to map the tuple of node j and resultant bitmask, to the previous node i we originally 
+        # came from (after a series of checks to make sure the transition was valid). 
+        # So, it's as simple as just finding the previous node from that fact. Then, we can update 
+        # the bitmask (with our bitwise operators) *removing* the current node from the bitmask. 
+        # This is what the bitmask looked like when we originally recorded this transition in the 
+        # DP table. Now we have the previous node and bitmask we need to repeat this process, 
+        # recording the reverse order of the nodes as we go. We'll repeat this until we are at 
+        # bitmask 0 (where no nodes have been passed through).
         while current_mask > 0:
             ham_cycle.append(current_node)
-            prev_vertex = dp[current_mask][current_node]
-            current_mask = current_mask ^ (1 << current_node) # Remove current vertex from mask
-            current_node = prev_vertex
+            prev_node = dp[current_mask][current_node]
+            current_mask = current_mask ^ (1 << current_node) # Remove current node from mask
+            current_node = prev_node
 
+        # 7. Reverse the order of the list using Python list operations since we start working 
+        # backwards from the last node. Then, for posterity's sake, record that we are ending back at node 0 
+        # by appending it to the end of our list. 
         ham_cycle.reverse()
-        ham_cycle.append(0)  # Complete the cycle by returning to the start node
+        ham_cycle.append(0)  
 
         print("Hamiltonian Cycle found:")
         print(" -> ".join(map(str, ham_cycle)))
-        # return path
